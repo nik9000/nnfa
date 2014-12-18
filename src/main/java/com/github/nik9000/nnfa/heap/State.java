@@ -28,14 +28,53 @@ public class State {
 		return this;
 	}
 
-	public List<State> nextStates(byte b) {
+	/**
+	 * Combine the passed in state with this one.
+	 */
+	public void combine(State state) {
+		accepts |= state.accepts;
+		standardTransitions.addAll(state.standardTransitions);
+		epsilonTransitions.addAll(state.epsilonTransitions);
+	}
+
+	public List<State> followStandardTransitions(byte b) {
 		List<State> result = new ArrayList<State>();
-		result.addAll(epsilonTransitions);
 		for (Transition transition: standardTransitions) {
 			if (transition.from() <= b && b <= transition.to()) {
 				result.add(transition.next());
 			}
 		}
 		return result;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder b = new StringBuilder();
+		b.append("(");
+		if (accepts) {
+			b.append("(");
+		}
+		boolean first = true;
+		for (State state: epsilonTransitions) {
+			if (first) {
+				first = false;
+			} else {
+				b.append(", ");
+			}
+			b.append("-->").append(state);
+		}
+		for (Transition transition: standardTransitions) {
+			if (first) {
+				first = false;
+			} else {
+				b.append(", ");
+			}
+			b.append(transition);
+		}
+		b.append(")");
+		if (accepts) {
+			b.append(")");
+		}
+		return b.toString();
 	}
 }

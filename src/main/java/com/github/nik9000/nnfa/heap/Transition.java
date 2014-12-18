@@ -1,5 +1,7 @@
 package com.github.nik9000.nnfa.heap;
 
+import java.util.Locale;
+
 /**
  * A transition from one state to another.
  */
@@ -42,5 +44,13 @@ public class Transition {
 	public Transition next(State next) {
 		this.next = next;
 		return this;
+	}
+
+	@Override
+	public String toString() {
+		if (from == to) {
+			return String.format(Locale.ROOT, "%x --> %s", from, next);
+		}
+		return String.format(Locale.ROOT, "[%x,%x] --> %s", from, to, next);
 	}
 }
