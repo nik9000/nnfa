@@ -2,10 +2,12 @@ package com.github.nik9000.nnfa.heap;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
- * NFA implementation that does everything on the Java heap.
+ * NFA implementation that does everything on the Java heap. This implementation
+ * make almost no effort to be efficient, just somewhat sensible.
  */
 public class Nfa {
 	private final State initial = new State();
@@ -14,47 +16,52 @@ public class Nfa {
 		return initial;
 	}
 
-	public boolean accepts(String target, boolean endAnchored) {
-		return accepts(target.getBytes(Charset.forName("utf-8")), endAnchored);
+	public boolean accepts(String target) {
+		return accepts(target.getBytes(Charset.forName("utf-8")));
 	}
 
 	/**
 	 * Walks the nfa breadth first checking if target matches.
 	 */
-	public boolean accepts(byte[] target, boolean endAnchored) {
-		// TODO startAnchored
-		List<State> currentStates = new ArrayList<State>(1 + initial.epsilonTransitions().size());
-		currentStates.add(initial);
-		currentStates.addAll(initial.epsilonTransitions());
-		for (State state: currentStates) {
-			if (state.accepts() && (!endAnchored || target.length == 0)) {
-				return true;
-			}
+	public boolean accepts(byte[] target) {
+		if (initial.accepts()) {
+			return true;
 		}
-		int position = 0;
-		List<State> nextStates = new ArrayList<State>(currentStates.size());
-		while (!currentStates.isEmpty() && position < target.length) {
-			for (State current : currentStates) {
-				for (State next : current.followStandardTransitions(target[position])) {
-					if (next.accepts() && (!endAnchored || target.length - 1 == position)) {
+		List<AcceptWork> currentWork = new LinkedList<AcceptWork>();
+		int offsetForInitial = 0;
+		List<AcceptWork> nextWork = new ArrayList<AcceptWork>(1);
+		while (offsetForInitial <= target.length || !currentWork.isEmpty()) {
+			if (offsetForInitial <= target.length) {
+				currentWork.add(new AcceptWork(initial, offsetForInitial));
+				offsetForInitial += 1;
+			}
+			for (AcceptWork current : currentWork) {
+				for (AbstractTransition transition : current.state.transitions()) {
+					if (!transition.isSatisfied(current.position, target)) {
+						continue;
+					}
+					if (transition.next().accepts()) {
 						return true;
 					}
-					for (State nextViaEpsilon: next.epsilonTransitions()) {
-						if (nextViaEpsilon.accepts() && (!endAnchored || target.length - 1 == position)) {
-							return true;
-						}
-					}
-					nextStates.add(next);
-					nextStates.addAll(next.epsilonTransitions());
+					nextWork.add(new AcceptWork(transition.next(), transition.advances() ? current.position + 1 : current.position));
 				}
 			}
-			List<State> tmp = currentStates;
-			currentStates = nextStates;
-			nextStates = tmp;
-			nextStates.clear();
-			position++;
+			List<AcceptWork> tmp = currentWork;
+			currentWork = nextWork;
+			nextWork = tmp;
+			nextWork.clear();
 		}
 		return false;
+	}
+
+	private class AcceptWork {
+		private State state;
+		private int position;
+
+		private AcceptWork(State state, int position) {
+			this.state = state;
+			this.position = position;
+		}
 	}
 
 	@Override
