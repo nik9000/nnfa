@@ -1,17 +1,20 @@
 package com.github.nik9000.nnfa.heap;
 
+/**
+ * Epsilon transition.
+ */
 public class EpsilonTransition extends AbstractTransition {
-	public EpsilonTransition(State next) {
-		super(next);
-	}
+    public EpsilonTransition(State next) {
+        super(next);
+    }
 
-	@Override
-	public boolean isSatisfied(int offset, byte[] target) {
-		return true;
-	}
+    @Override
+    public boolean matches(int offset, byte[] target) {
+        return true;
+    }
 
-	@Override
-	public boolean advances() {
-		return false;
-	}
+    @Override
+    public boolean advances() {
+        return false;
+    }
 }
