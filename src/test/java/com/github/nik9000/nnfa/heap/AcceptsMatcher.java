@@ -1,8 +1,11 @@
 package com.github.nik9000.nnfa.heap;
 
+import static org.hamcrest.Matchers.not;
+
 import java.util.Random;
 
 import org.hamcrest.Description;
+import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 
 /**
@@ -39,10 +42,22 @@ public class AcceptsMatcher extends TypeSafeMatcher<Nfa> {
         return new AcceptsMatcher(target, random.nextBoolean(), random.nextBoolean());
     }
 
+    /**
+     * Negates this matches if pattern is non-empty. Use this to handle cases
+     * where you want to test random patterns including empty string.
+     */
+    public Matcher<Nfa> notIfNonEmpty(String pattern) {
+        if (pattern.isEmpty()) {
+            return this;
+        }
+        return not(this);
+    }
+
     @Override
     protected void describeMismatchSafely(Nfa item, Description mismatchDescription) {
         mismatchDescription.appendText("but didn't (was ");
-        mismatchDescription.appendValue((startAnchored ? "^" : "") + item + (endAnchored ? "$" : ""));
+        mismatchDescription.appendValue((startAnchored ? "^" : "") + item
+                + (endAnchored ? "$" : ""));
         mismatchDescription.appendText(")");
     }
 

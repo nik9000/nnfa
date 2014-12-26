@@ -24,7 +24,7 @@ public class Nfa {
      * Walks the nfa breadth first checking if target matches.
      */
     public boolean accepts(byte[] target, boolean startAnchored, boolean endAnchored) {
-        if (initial.accepts() && (!endAnchored || target.length == 0)) {
+        if (initial.accepts() && (!startAnchored || !endAnchored || target.length == 0)) {
             return true;
         }
         List<AcceptWork> currentWork = new LinkedList<AcceptWork>();

@@ -2,6 +2,9 @@ package com.github.nik9000.nnfa.heap;
 
 import java.nio.charset.Charset;
 
+/**
+ * Builds NFAs.  All methods are named after what is accepted by the NFA.
+ */
 public class NfaFactory {
     public Nfa string(String str) {
         return string(str.getBytes(Charset.forName("utf-8")));
@@ -20,24 +23,24 @@ public class NfaFactory {
         return nfa;
     }
 
-    public Nfa acceptsEmptyString() {
+    public Nfa nothing() {
+        return new Nfa();
+    }
+
+    public Nfa empty() {
         Nfa nfa = new Nfa();
         nfa.initial().accepts(true);
         return nfa;
     }
 
-    public Nfa acceptsNothing() {
-        return new Nfa();
-    }
-
-    public Nfa acceptsAnyString() {
+    public Nfa anyString() {
         Nfa nfa = new Nfa();
         nfa.initial().accepts(true);
         nfa.initial().transitions().add(new EpsilonTransition(nfa.initial()));
         return nfa;
     }
 
-    public Nfa acceptsAnyChar() {
+    public Nfa anyChar() {
         Nfa nfa = new Nfa();
         State accept = new State().accepts(true);
         // TODO accept valid utf8

@@ -1,0 +1,60 @@
+package com.github.nik9000.nnfa.heap;
+
+import static com.github.nik9000.nnfa.heap.AcceptsMatcher.accepts;
+import static org.apache.lucene.util.TestUtil.randomRealisticUnicodeString;
+import static org.hamcrest.Matchers.not;
+
+import org.apache.lucene.util.LuceneTestCase;
+import org.junit.Test;
+
+public class StringNfaTest extends LuceneTestCase {
+    private final NfaFactory factory = new NfaFactory();
+
+    @Test
+    public void emptyString() {
+        exactStringTestCase("");
+    }
+
+    @Test
+    public void oneCharacter() {
+        exactStringTestCase("a");
+    }
+
+    @Test
+    public void twoCharacter() {
+        exactStringTestCase("ab");
+    }
+
+    @Test
+    public void unicodeCharacters() {
+        exactStringTestCase(randomRealisticUnicodeString(random(), 1, 20));
+    }
+
+    private void exactStringTestCase(String str) {
+        String strWithPrefix = randomRealisticUnicodeString(random(), 1, 20) + str;
+        String strWithSuffix = str + randomRealisticUnicodeString(random(), 1, 20);
+        String strWithPrefixAndSuffix = strWithPrefix
+                + randomRealisticUnicodeString(random(), 1, 20);
+
+        Nfa nfa = factory.string(str);
+        assertThat(nfa, accepts(str));
+        assertThat(nfa, not(accepts(strWithPrefix)));
+        assertThat(nfa, not(accepts(strWithSuffix)));
+        assertThat(nfa, not(accepts(strWithPrefixAndSuffix)));
+
+        assertThat(nfa, accepts(str).endUnanchored());
+        assertThat(nfa, accepts(strWithPrefix).endUnanchored().notIfNonEmpty(str));
+        assertThat(nfa, accepts(strWithSuffix).endUnanchored());
+        assertThat(nfa, accepts(strWithPrefixAndSuffix).endUnanchored().notIfNonEmpty(str));
+
+        assertThat(nfa, accepts(str).startUnanchored());
+        assertThat(nfa, accepts(strWithPrefix).startUnanchored());
+        assertThat(nfa, accepts(strWithSuffix).startUnanchored().notIfNonEmpty(str));
+        assertThat(nfa, accepts(strWithPrefixAndSuffix).startUnanchored().notIfNonEmpty(str));
+
+        assertThat(nfa, accepts(str).unAnchored());
+        assertThat(nfa, accepts(strWithPrefix).unAnchored());
+        assertThat(nfa, accepts(strWithSuffix).unAnchored());
+        assertThat(nfa, accepts(strWithPrefixAndSuffix).unAnchored());
+    }
+}

@@ -48,7 +48,7 @@ public class RegexParser {
 
     public Nfa parse(NfaFactory factory, String expression, int flags) {
         if (expression.length() == 0) {
-            return factory.acceptsEmptyString();
+            return factory.empty();
         }
         Parse parse = new Parse(factory, expression, flags);
         Nfa nfa = parse.parseUnionExp();
@@ -199,7 +199,7 @@ public class RegexParser {
                     // TODO handle non-1 byte characters here
                     nfa.complement();
                     Nfa chars = nfa;
-                    nfa = factory.acceptsAnyChar();
+                    nfa = factory.anyChar();
                     nfa.intersect(chars);
                 }
                 if (!match(']')) {
@@ -228,13 +228,13 @@ public class RegexParser {
 
         Nfa parseSimpleExp() {
             if (match('.')) {
-                return factory.acceptsAnyChar();
+                return factory.anyChar();
             }
             if (check(EMPTY) && match('#')) {
-                return factory.acceptsNothing();
+                return factory.nothing();
             }
             if (check(ANYSTRING) && match('@')) {
-                return factory.acceptsAnyString();
+                return factory.anyString();
             }
             if (match('"')) {
                 int start = pos;
@@ -248,7 +248,7 @@ public class RegexParser {
             }
             if (match('(')) {
                 if (match(')')) {
-                    return factory.acceptsEmptyString();
+                    return factory.empty();
                 }
                 Nfa nfa = parseUnionExp();
                 if (!match(')')) {
