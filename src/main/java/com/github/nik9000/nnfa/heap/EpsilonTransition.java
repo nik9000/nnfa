@@ -17,4 +17,9 @@ public class EpsilonTransition extends AbstractTransition {
     public boolean advances() {
         return false;
     }
+
+    @Override
+    public String toString() {
+        return "->" + next();
+    }
 }

@@ -2,35 +2,51 @@ package com.github.nik9000.nnfa.heap;
 
 import static org.apache.lucene.util.TestUtil.randomRealisticUnicodeString;
 import static org.hamcrest.Matchers.not;
-
-import java.nio.charset.Charset;
+import static com.github.nik9000.nnfa.heap.AcceptsMatcher.*;
 
 import org.apache.lucene.util.LuceneTestCase;
 import org.junit.Test;
 
 public class NfaTest extends LuceneTestCase {
+    private final NfaFactory factory = new NfaFactory();
+
     @Test
     public void noAcceptStateMatchesNothing() {
         Nfa nfa = new Nfa();
-        assertThat(nfa, not(accepts("")));
-        assertThat(nfa, not(accepts(randomRealisticUnicodeString(random()))));
+        assertThat(nfa, not(accepts("").randomAnchoring(random())));
+        assertThat(nfa, not(accepts(randomRealisticUnicodeString(random())).randomAnchoring(random())));
     }
 
     @Test
-    public void justAcceptStateMatchesEverything() {
+    public void justAcceptStateMatchesEmpty() {
         Nfa nfa = new Nfa();
         nfa.initial().accepts(true);
-        assertThat(nfa, accepts(""));
-        assertThat(nfa, accepts(randomRealisticUnicodeString(random())));
+        assertThat(nfa, accepts("").randomAnchoring(random()));
+    }
+    
+    @Test
+    public void justAcceptStateMatchesAnythingEndUnanchored() {
+        Nfa nfa = new Nfa();
+        nfa.initial().accepts(true);
+        assertThat(nfa, accepts(randomRealisticUnicodeString(random(), 1, 20)).endUnanchored());
+        assertThat(nfa, not(accepts(randomRealisticUnicodeString(random(), 1, 20))));
     }
 
     @Test
-    public void justEpsilonTransitionToAcceptStateMatchesEverything() {
+    public void justEpsilonTransitionToAcceptStateMatchesEmpty() {
         Nfa nfa = new Nfa();
         State accept = new State().accepts(true);
         nfa.initial().transitions().add(new EpsilonTransition(accept));
-        assertThat(nfa, accepts(""));
-        assertThat(nfa, accepts(randomRealisticUnicodeString(random())));
+        assertThat(nfa, accepts("").randomAnchoring(random()));
+    }
+
+    @Test
+    public void justEpsilonTransitionToAcceptStateMatchesAnythingEndUnanchored() {
+        Nfa nfa = new Nfa();
+        State accept = new State().accepts(true);
+        nfa.initial().transitions().add(new EpsilonTransition(accept));
+        assertThat(nfa, accepts(randomRealisticUnicodeString(random(), 1, 20)).endUnanchored());
+        assertThat(nfa, not(accepts(randomRealisticUnicodeString(random(), 1, 20))));
     }
 
     @Test
@@ -50,8 +66,8 @@ public class NfaTest extends LuceneTestCase {
 
     @Test
     public void or() {
-        Nfa nfa = exactString("candle", true, true);
-        nfa.initial().combine(exactString("light", true, true).initial());
+        Nfa nfa = factory.string("candle");
+        nfa.union(factory.string("light"));
         assertThat(nfa, accepts("candle"));
         assertThat(nfa, accepts("light"));
         assertThat(nfa, not(accepts("lemmon")));
@@ -63,56 +79,25 @@ public class NfaTest extends LuceneTestCase {
         String strWithPrefixAndSuffix = strWithPrefix
                 + randomRealisticUnicodeString(random(), 1, 20);
 
-        Nfa nfa = exactString(str, true, true);
+        Nfa nfa = factory.string(str);
         assertThat(nfa, accepts(str));
         assertThat(nfa, not(accepts(strWithPrefix)));
         assertThat(nfa, not(accepts(strWithSuffix)));
         assertThat(nfa, not(accepts(strWithPrefixAndSuffix)));
 
-        nfa = exactString(str, true, false);
-        assertThat(nfa, accepts(str));
-        assertThat(nfa, not(accepts(strWithPrefix)));
-        assertThat(nfa, accepts(strWithSuffix));
-        assertThat(nfa, not(accepts(strWithPrefixAndSuffix)));
+        assertThat(nfa, accepts(str).endUnanchored());
+        assertThat(nfa, not(accepts(strWithPrefix).endUnanchored()));
+        assertThat(nfa, accepts(strWithSuffix).endUnanchored());
+        assertThat(nfa, not(accepts(strWithPrefixAndSuffix).endUnanchored()));
 
-        nfa = exactString(str, false, true);
-        assertThat(nfa, accepts(str));
-        assertThat(nfa, accepts(strWithPrefix));
-        assertThat(nfa, not(accepts(strWithSuffix)));
-        assertThat(nfa, not(accepts(strWithPrefixAndSuffix)));
+        assertThat(nfa, accepts(str).startUnanchored());
+        assertThat(nfa, accepts(strWithPrefix).startUnanchored());
+        assertThat(nfa, not(accepts(strWithSuffix).startUnanchored()));
+        assertThat(nfa, not(accepts(strWithPrefixAndSuffix).startUnanchored()));
 
-        nfa = exactString(str, false, false);
-        assertThat(nfa, accepts(str));
-        assertThat(nfa, accepts(strWithPrefix));
-        assertThat(nfa, accepts(strWithSuffix));
-        assertThat(nfa, accepts(strWithPrefixAndSuffix));
-    }
-
-    private Nfa exactString(String str, boolean startAnchor, boolean endAnchor) {
-        Nfa nfa = new Nfa();
-        byte[] bytes = str.getBytes(Charset.forName("utf-8"));
-        State from = nfa.initial();
-        State to = nfa.initial();
-        if (startAnchor) {
-            to = new State();
-            from.transitions().add(new AtBeginningTransition(to));
-            from = to;
-        }
-        for (int i = 0; i < bytes.length; i++) {
-            to = new State();
-            from.transitions().add(new ByteMatchingTransition(bytes[i], bytes[i], to));
-            from = to;
-        }
-        if (endAnchor) {
-            from = to;
-            to = new State();
-            from.transitions().add(new AtEndTransition(to));
-        }
-        to.accepts(true);
-        return nfa;
-    }
-
-    public AcceptsMatcher accepts(String str) {
-        return new AcceptsMatcher(str);
+        assertThat(nfa, accepts(str).unAnchored());
+        assertThat(nfa, accepts(strWithPrefix).unAnchored());
+        assertThat(nfa, accepts(strWithSuffix).unAnchored());
+        assertThat(nfa, accepts(strWithPrefixAndSuffix).unAnchored());
     }
 }

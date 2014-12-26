@@ -24,9 +24,9 @@ public class State {
 	}
 
 	/**
-	 * Combine the passed in state with this one.
+	 * Merge the passed in state with this one.
 	 */
-	public void combine(State state) {
+	public void intersect(State state) {
 		accepts |= state.accepts;
 		transitions.addAll(state.transitions);
 	}
