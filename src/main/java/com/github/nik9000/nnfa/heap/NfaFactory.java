@@ -33,18 +33,28 @@ public class NfaFactory {
         return nfa;
     }
 
-    public Nfa anyString() {
+    public Nfa anyByte() {
         Nfa nfa = new Nfa();
         nfa.initial().accepts(true);
-        nfa.initial().transitions().add(new EpsilonTransition(nfa.initial()));
+        nfa.initial().transitions().add(new ByteMatchingTransition(Byte.MIN_VALUE, Byte.MAX_VALUE, nfa.initial()));
         return nfa;
     }
 
     public Nfa anyChar() {
         Nfa nfa = new Nfa();
         State accept = new State().accepts(true);
-        // TODO accept valid utf8
-        nfa.initial().transitions().add(new ByteMatchingTransition(Byte.MIN_VALUE, Byte.MAX_VALUE, accept));
+        State a1 = new State();
+        State a2 = new State();
+        State a3 = new State();
+
+        nfa.initial().transitions().add(new ByteMatchingTransition(0x00, 0x7f, accept));
+        nfa.initial().transitions().add(new ByteMatchingTransition(0xc0, 0xdf, a1));
+        nfa.initial().transitions().add(new ByteMatchingTransition(0xe0, 0xef, a2));
+        nfa.initial().transitions().add(new ByteMatchingTransition(0xf0, 0xf7, a3));
+        a1.transitions().add(new ByteMatchingTransition(0x80, 0xbf, accept));
+        a2.transitions().add(new ByteMatchingTransition(0x80, 0xbf, a1));
+        a3.transitions().add(new ByteMatchingTransition(0x80, 0xbf, a2));
+
         return nfa;
     }
 

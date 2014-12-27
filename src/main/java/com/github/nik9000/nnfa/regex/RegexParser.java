@@ -234,7 +234,7 @@ public class RegexParser {
                 return factory.nothing();
             }
             if (check(ANYSTRING) && match('@')) {
-                return factory.anyString();
+                return factory.anyByte();
             }
             if (match('"')) {
                 int start = pos;

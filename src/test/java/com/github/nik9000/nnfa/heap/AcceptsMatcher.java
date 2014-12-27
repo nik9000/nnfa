@@ -16,11 +16,15 @@ public class AcceptsMatcher extends TypeSafeMatcher<Nfa> {
         return new AcceptsMatcher(str, true, true);
     }
 
-    private final String target;
+    public static AcceptsMatcher accepts(byte[] bytes) {
+        return new AcceptsMatcher(bytes, true, true);
+    }
+
+    private final Object target;
     private final boolean startAnchored;
     private final boolean endAnchored;
 
-    public AcceptsMatcher(String target, boolean startAnchored, boolean endAnchored) {
+    public AcceptsMatcher(Object target, boolean startAnchored, boolean endAnchored) {
         this.target = target;
         this.startAnchored = startAnchored;
         this.endAnchored = endAnchored;
@@ -69,6 +73,12 @@ public class AcceptsMatcher extends TypeSafeMatcher<Nfa> {
 
     @Override
     protected boolean matchesSafely(Nfa nfa) {
-        return nfa.accepts(target, startAnchored, endAnchored);
+        if (target instanceof String) {
+            return nfa.accepts((String)target, startAnchored, endAnchored);
+        }
+        if (target instanceof byte[]) {
+            return nfa.accepts((byte[])target, startAnchored, endAnchored);
+        }
+        throw new IllegalStateException("Target of unknown type:  " + target.getClass());
     }
 }
