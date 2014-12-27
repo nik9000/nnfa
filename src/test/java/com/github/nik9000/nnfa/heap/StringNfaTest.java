@@ -52,9 +52,9 @@ public class StringNfaTest extends LuceneTestCase {
         assertThat(nfa, accepts(strWithSuffix).startUnanchored().notIfNonEmpty(str));
         assertThat(nfa, accepts(strWithPrefixAndSuffix).startUnanchored().notIfNonEmpty(str));
 
-        assertThat(nfa, accepts(str).unAnchored());
-        assertThat(nfa, accepts(strWithPrefix).unAnchored());
-        assertThat(nfa, accepts(strWithSuffix).unAnchored());
-        assertThat(nfa, accepts(strWithPrefixAndSuffix).unAnchored());
+        assertThat(nfa, accepts(str).unanchored());
+        assertThat(nfa, accepts(strWithPrefix).unanchored());
+        assertThat(nfa, accepts(strWithSuffix).unanchored());
+        assertThat(nfa, accepts(strWithPrefixAndSuffix).unanchored());
     }
 }

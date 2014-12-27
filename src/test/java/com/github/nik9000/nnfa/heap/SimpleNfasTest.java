@@ -10,12 +10,12 @@ import java.util.Random;
 import org.apache.lucene.util.LuceneTestCase;
 import org.junit.Test;
 
-public class SimpleNfasTest extends LuceneTestCase {
-    private final NfaFactory factory = new NfaFactory();
+import com.carrotsearch.randomizedtesting.generators.RandomInts;
 
+public class SimpleNfasTest extends LuceneTestCase {
     @Test
     public void nothingAcceptsNothing() {
-        Nfa nfa = factory.nothing();
+        Nfa nfa = new NfaBuilder().buildNoMark();
         assertThat(nfa, not(accepts("").randomAnchoring(random())));
         assertThat(nfa,
                 not(accepts(randomRealisticUnicodeString(random())).randomAnchoring(random())));
@@ -23,12 +23,12 @@ public class SimpleNfasTest extends LuceneTestCase {
 
     @Test
     public void emptyMatchesEmptyString() {
-        assertThat(factory.empty(), accepts("").randomAnchoring(random()));
+        assertThat(new NfaBuilder().build(), accepts("").randomAnchoring(random()));
     }
 
     @Test
     public void emptyMatchesAnythingUnanchored() {
-        Nfa nfa = factory.empty();
+        Nfa nfa = new NfaBuilder().build();
         assertThat(nfa, accepts(randomRealisticUnicodeString(random(), 1, 20)).endUnanchored());
         assertThat(nfa, accepts(randomRealisticUnicodeString(random(), 1, 20)).startUnanchored());
         assertThat(nfa, not(accepts(randomRealisticUnicodeString(random(), 1, 20))));
@@ -53,42 +53,50 @@ public class SimpleNfasTest extends LuceneTestCase {
     }
 
     @Test
-    public void anyByteAcceptsAnyString() {
-        assertThat(factory.anyByte(), accepts(randomRealisticUnicodeString(random())).randomAnchoring(random()));
+    public void anyByteAcceptsAnyStringUnanchored() {
+        assertThat(new NfaBuilder().anyByte().build(), accepts(randomRealisticUnicodeString(random(), 1, 20)).startUnanchored());
+        assertThat(new NfaBuilder().anyByte().build(), accepts(randomRealisticUnicodeString(random(), 1, 20)).endUnanchored());
+        assertThat(new NfaBuilder().anyByte().build(), accepts(randomRealisticUnicodeString(random(), 1, 20)).unanchored());
+        assertThat(new NfaBuilder().anyByte().build(), not(accepts(randomRealisticUnicodeString(random(), 2, 20))));
     }
 
     @Test
     public void anyByteAcceptsAnyByteSequence() {
-        assertThat(factory.anyByte(), accepts(randomBytes(random())).randomAnchoring(random()));
+        assertThat(new NfaBuilder().anyByte().build(), accepts(randomBytes(random(), 1, 1)));
+        assertThat(new NfaBuilder().anyByte().build(), accepts(randomBytes(random(), 1, 20)).startUnanchored());
+        assertThat(new NfaBuilder().anyByte().build(), accepts(randomBytes(random(), 1, 20)).endUnanchored());
+        assertThat(new NfaBuilder().anyByte().build(), accepts(randomBytes(random(), 1, 20)).unanchored());
+        assertThat(new NfaBuilder().anyByte().build(), not(accepts(randomBytes(random(), 2, 20))));
     }
 
     @Test
-    public void anyCharAcceptsAnySingleChar() {
-        assertThat(factory.anyChar(), accepts(randomRealisticUnicodeString(random(), 1, 1)).randomAnchoring(random()));
+    public void anyCodePointAcceptsAnySingleChar() {
+        assertThat(new NfaBuilder().anyCodePoint().build(), accepts(randomRealisticUnicodeString(random(), 1, 1)).randomAnchoring(random()));
     }
 
     @Test
-    public void anyCharDoesNotAcceptEmptyString() {
-        assertThat(factory.anyChar(), not(accepts("").randomAnchoring(random())));
+    public void anyCodePointDoesNotAcceptEmptyString() {
+        assertThat(new NfaBuilder().anyCodePoint().build(), not(accepts("").randomAnchoring(random())));
     }
 
     @Test
-    public void anyCharDoesNotAcceptInvalidUtf8() {
-        assertThat(factory.anyChar(), not(accepts(randomInvalidUtf8Sequence(random()))));
+    public void anyCodePointDoesNotAcceptInvalidUtf8() {
+        assertThat(new NfaBuilder().anyCodePoint().build(), not(accepts(randomInvalidUtf8Sequence(random()))));
     }
 
     @Test
-    public void anyCharAcceptsAnyStringUnanchored() {
-        assertThat(factory.anyChar(), accepts(randomRealisticUnicodeString(random(), 1, 20)).startUnanchored());
-        assertThat(factory.anyChar(), accepts(randomRealisticUnicodeString(random(), 1, 20)).endUnanchored());
-        assertThat(factory.anyChar(), not(accepts(randomRealisticUnicodeString(random(), 2, 20))));
+    public void anyCodePointAcceptsAnyStringUnanchored() {
+        Nfa nfa = new NfaBuilder().anyCodePoint().build();
+        assertThat(nfa, accepts(randomRealisticUnicodeString(random(), 1, 20)).startUnanchored());
+        assertThat(nfa, accepts(randomRealisticUnicodeString(random(), 1, 20)).endUnanchored());
+        assertThat(nfa, not(accepts(randomRealisticUnicodeString(random(), 2, 20))));
     }
 
     @Test
     public void aByteAcceptsTheByte() {
         byte[] b = new byte[1];
         random().nextBytes(b);
-        Nfa nfa = factory.aByte(b[0]);
+        Nfa nfa = new NfaBuilder().aByte(b[0]).build();
         assertThat(nfa, accepts(b));
         byte[] notB = new byte[1];
         notB[0] = (byte)(b[0] + 1);
@@ -107,15 +115,15 @@ public class SimpleNfasTest extends LuceneTestCase {
     @Test
     public void characterAcceptsTheCharacter() {
         String c = randomRealisticUnicodeString(random(), 1, 1);
-        Nfa nfa = factory.character(c.codePointAt(0));
+        Nfa nfa = new NfaBuilder().codePoint(c.codePointAt(0)).build();
         assertThat(nfa, accepts(c));
         assertThat(nfa, not(accepts(c + randomRealisticUnicodeString(random(), 1, 20))));
         assertThat(nfa, accepts(c + randomRealisticUnicodeString(random(), 1, 20)).endUnanchored());
         assertThat(nfa, accepts(randomRealisticUnicodeString(random(), 1, 20) + c).startUnanchored());
     }
 
-    private byte[] randomBytes(Random random) {
-        byte[] bytes = new byte[random.nextInt(20)];
+    private byte[] randomBytes(Random random, int min, int max) {
+        byte[] bytes = new byte[RandomInts.randomIntBetween(random(), min, max)];
         random.nextBytes(bytes);
         return bytes;
     }

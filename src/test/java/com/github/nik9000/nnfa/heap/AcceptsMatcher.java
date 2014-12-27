@@ -30,7 +30,7 @@ public class AcceptsMatcher extends TypeSafeMatcher<Nfa> {
         this.endAnchored = endAnchored;
     }
 
-    public AcceptsMatcher unAnchored() {
+    public AcceptsMatcher unanchored() {
         return new AcceptsMatcher(target, false, false);
     }
 

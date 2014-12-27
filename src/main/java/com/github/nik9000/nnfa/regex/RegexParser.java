@@ -1,6 +1,7 @@
 package com.github.nik9000.nnfa.regex;
 
 import com.github.nik9000.nnfa.heap.Nfa;
+import com.github.nik9000.nnfa.heap.NfaBuilder;
 import com.github.nik9000.nnfa.heap.NfaFactory;
 
 public class RegexParser {
@@ -48,7 +49,7 @@ public class RegexParser {
 
     public Nfa parse(NfaFactory factory, String expression, int flags) {
         if (expression.length() == 0) {
-            return factory.empty();
+            return new NfaBuilder().buildNoMark();
         }
         Parse parse = new Parse(factory, expression, flags);
         Nfa nfa = parse.parseUnionExp();
@@ -199,7 +200,7 @@ public class RegexParser {
                     // TODO handle non-1 byte characters here
                     nfa.complement();
                     Nfa chars = nfa;
-                    nfa = factory.anyChar();
+                    nfa = new NfaBuilder().anyCodePoint().build();
                     nfa.intersect(chars);
                 }
                 if (!match(']')) {
@@ -223,18 +224,19 @@ public class RegexParser {
             if (match('-')) {
                 return factory.characterRange(c, parseCharExp());
             }
-            return factory.character(c);
+            // TODO rework me so it builds on a single NfaBuilder
+            return new NfaBuilder().codePoint(c).build();
         }
 
         Nfa parseSimpleExp() {
             if (match('.')) {
-                return factory.anyChar();
+                return new NfaBuilder().anyCodePoint().build();
             }
             if (check(EMPTY) && match('#')) {
-                return factory.nothing();
+                return new NfaBuilder().buildNoMark();
             }
             if (check(ANYSTRING) && match('@')) {
-                return factory.anyByte();
+                return new NfaBuilder().anyByte().build();
             }
             if (match('"')) {
                 int start = pos;
@@ -248,7 +250,7 @@ public class RegexParser {
             }
             if (match('(')) {
                 if (match(')')) {
-                    return factory.empty();
+                    return new NfaBuilder().build();
                 }
                 Nfa nfa = parseUnionExp();
                 if (!match(')')) {
@@ -303,7 +305,8 @@ public class RegexParser {
                             + (pos - 1));
                 }
             }
-            return factory.character(parseCharExp());
+            // TODO rework so we're building on one NfaBuilder
+            return new NfaBuilder().codePoint(parseCharExp()).build();
         }
 
         final int parseCharExp() throws IllegalArgumentException {
