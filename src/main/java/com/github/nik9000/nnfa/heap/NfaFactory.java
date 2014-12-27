@@ -1,13 +1,14 @@
 package com.github.nik9000.nnfa.heap;
 
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 
 /**
  * Builds NFAs.  All methods are named after what is accepted by the NFA.
  */
 public class NfaFactory {
     public Nfa string(String str) {
-        return string(str.getBytes(Charset.forName("utf-8")));
+        return string(str.getBytes(StandardCharsets.UTF_8));
     }
 
     public Nfa string(byte[] bytes) {
@@ -58,12 +59,61 @@ public class NfaFactory {
         return nfa;
     }
 
+    /**
+     * @return an NFA accepting the byte b
+     */
+    public Nfa aByte(byte b) {
+        Nfa nfa = new Nfa();
+        nfa.initial().accepts(true);
+        nfa.initial().transitions().add(new ByteMatchingTransition(b, b, nfa.initial()));
+        return nfa;
+    }
+
+    /**
+     * @return an NFA accepting the unicode codepoint c encoded in utf-8
+     */
     public Nfa character(int c) {
         Nfa nfa = new Nfa();
         State accept = new State().accepts(true);
-        // TODO handle multi-byte characters
-        nfa.initial().transitions().add(new ByteMatchingTransition((byte)c, (byte)c, accept));
-        return nfa;        
+        if (c <= 0x7f) {
+            nfa.initial().transitions().add(new ByteMatchingTransition(c, c, accept));
+            return nfa;
+        }
+        if (c <= 0x07ff) {
+            State next = new State();
+            byte c1 = (byte)(c >>> 6 | 0xc0);
+            byte c2 = (byte)(c & 0x3f | 0x80);
+            nfa.initial().transitions().add(new ByteMatchingTransition(c1, c1, next));
+            next.transitions().add(new ByteMatchingTransition(c2, c2, accept));
+            return nfa;
+        }
+        if (c <= 0xffff) {
+            State next1 = new State();
+            State next2 = new State();
+            byte c1 = (byte)(c >>> 12 | 0xe0);
+            byte c2 = (byte)(c >>> 6 & 0x3f | 0x80);
+            byte c3 = (byte)(c & 0x3f | 0x80);
+            nfa.initial().transitions().add(new ByteMatchingTransition(c1, c1, next1));
+            next1.transitions().add(new ByteMatchingTransition(c2, c2, next2));
+            next2.transitions().add(new ByteMatchingTransition(c3, c3, accept));
+            return nfa;
+        }
+        if (c > 0x1FFFFF) {
+            throw new IllegalArgumentException(String.format(Locale.ROOT, "Invalid codepoint:  %x", c));
+        }
+        State next1 = new State();
+        State next2 = new State();
+        State next3 = new State();
+        byte c1 = (byte)(c >>> 18 | 0xf0);
+        byte c2 = (byte)(c >>> 12 & 0x3f | 0x80);
+        byte c3 = (byte)(c >>> 6 & 0x3f | 0x80);
+        byte c4 = (byte)(c & 0x3f | 0x80);
+        nfa.initial().transitions().add(new ByteMatchingTransition(c1, c1, next1));
+        next1.transitions().add(new ByteMatchingTransition(c2, c2, next2));
+        next2.transitions().add(new ByteMatchingTransition(c3, c3, next3));
+        next3.transitions().add(new ByteMatchingTransition(c4, c4, accept));
+        return nfa;
+
     }
 
     public Nfa characterRange(int from, int to) {

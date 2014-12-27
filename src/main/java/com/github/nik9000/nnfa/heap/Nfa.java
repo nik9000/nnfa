@@ -1,6 +1,6 @@
 package com.github.nik9000.nnfa.heap;
 
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -17,7 +17,7 @@ public class Nfa {
     }
 
     public boolean accepts(String target, boolean startAnchored, boolean endAnchored) {
-        return accepts(target.getBytes(Charset.forName("utf-8")), startAnchored, endAnchored);
+        return accepts(target.getBytes(StandardCharsets.UTF_8), startAnchored, endAnchored);
     }
 
     /**

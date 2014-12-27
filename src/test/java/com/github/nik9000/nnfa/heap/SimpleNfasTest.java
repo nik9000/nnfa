@@ -84,6 +84,36 @@ public class SimpleNfasTest extends LuceneTestCase {
         assertThat(factory.anyChar(), not(accepts(randomRealisticUnicodeString(random(), 2, 20))));
     }
 
+    @Test
+    public void aByteAcceptsTheByte() {
+        byte[] b = new byte[1];
+        random().nextBytes(b);
+        Nfa nfa = factory.aByte(b[0]);
+        assertThat(nfa, accepts(b));
+        byte[] notB = new byte[1];
+        notB[0] = (byte)(b[0] + 1);
+        assertThat(nfa, not(accepts(notB)));
+        notB = new byte[2];
+        random().nextBytes(notB);
+        notB[0] = b[0];
+        assertThat(nfa, not(accepts(notB)));
+        assertThat(nfa, accepts(notB).endUnanchored());
+        random().nextBytes(notB);
+        notB[1] = b[0];
+        assertThat(nfa, not(accepts(notB)));
+        assertThat(nfa, accepts(notB).startUnanchored());
+    }
+
+    @Test
+    public void characterAcceptsTheCharacter() {
+        String c = randomRealisticUnicodeString(random(), 1, 1);
+        Nfa nfa = factory.character(c.codePointAt(0));
+        assertThat(nfa, accepts(c));
+        assertThat(nfa, not(accepts(c + randomRealisticUnicodeString(random(), 1, 20))));
+        assertThat(nfa, accepts(c + randomRealisticUnicodeString(random(), 1, 20)).endUnanchored());
+        assertThat(nfa, accepts(randomRealisticUnicodeString(random(), 1, 20) + c).startUnanchored());
+    }
+
     private byte[] randomBytes(Random random) {
         byte[] bytes = new byte[random.nextInt(20)];
         random.nextBytes(bytes);
