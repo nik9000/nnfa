@@ -19,7 +19,7 @@ public class EpsilonTransition extends AbstractTransition {
     }
 
     @Override
-    public String toString() {
-        return "->" + next().id();
+    protected String dotLabel() {
+        return "\u03B5";
     }
 }

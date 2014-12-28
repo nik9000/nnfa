@@ -1,9 +1,14 @@
 package com.github.nik9000.nnfa.heap;
 
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * NFA implementation that does everything on the Java heap. This implementation
@@ -73,6 +78,64 @@ public class Nfa {
     @Override
     public String toString() {
         return initial.toString();
+    }
+
+    /**
+     * Returns a script you can paste into your console to render this nfa as an
+     * svg.
+     */
+    public String toSvgScript() {
+        Writer w = new StringWriter();
+        try {
+            toSvgScript(w);
+        } catch (IOException e) {
+            throw new RuntimeException("Shouldn't happen", e);
+        }
+        return w.toString();
+    }
+
+    /**
+     * Builds a script you can paste into your console to render this nfa as an
+     * svg.
+     */
+    public void toSvgScript(Writer w) throws IOException {
+        w.write("dot -Tsvg > dot.svg <<__DOT__\n");
+        toDot(w);
+        w.write("__DOT__");
+    }
+
+    /**
+     * Converts this NFA to a dot diagram.
+     */
+    public void toDot(Writer w) throws IOException {
+        w.write("digraph Automaton {\n");
+        w.write("  rankdir = LR\n");
+        w.write("  initial [shape=plaintext,label=\"\"]\n");
+        w.write("  initial -> 0\n");
+
+        Set<Integer> seenStates = new HashSet<Integer>();
+        toDot(w, initial, seenStates);
+        w.append("}\n");
+    }
+
+    /**
+     * Writes the dot for a state and its transitions if it hasn't yet been seen.
+     */
+    private void toDot(Writer w, State state, Set<Integer> seen) throws IOException {
+        if (!seen.add(state.id())) {
+            return;
+        }
+        String idString = Integer.toString(state.id());
+        w.append("  ").append(idString);
+        String shape = "circle";
+        if (state.accepts()) {
+            shape = "doublecircle";
+        }
+        w.append(" [shape=").append(shape).append(",label=\"").append(idString).append("\"]\n");
+        for (AbstractTransition transition : state.transitions()) {
+            transition.toDot(w, state.id());
+            toDot(w, transition.next(), seen);
+        }
     }
 
     public void intersect(Nfa nfa) {

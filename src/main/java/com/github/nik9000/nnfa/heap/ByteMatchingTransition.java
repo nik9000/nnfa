@@ -34,11 +34,11 @@ public class ByteMatchingTransition extends AbstractTransition {
     }
 
     @Override
-    public String toString() {
+    protected String dotLabel() {
         if (from == to) {
-            return String.format(Locale.ROOT, "%s->%s", formatByte(from), next().id());
+            return formatByte(from);
         }
-        return String.format(Locale.ROOT, "%s,%s->%s", formatByte(from), formatByte(to), next().id());
+        return formatByte(from) + "-" + formatByte(to);
     }
 
     private String formatByte(byte b) {
