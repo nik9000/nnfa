@@ -86,6 +86,13 @@ public abstract class AbstractBaseOperations<Self extends AbstractBaseOperations
     }
 
     /**
+     * Will the next call to "to" create a new state?
+     */
+    protected final boolean toIsDefault() {
+        return to < 0;
+    }
+
+    /**
      * Return yourself cast Self.  Used to prevent unchecked casts.
      */
     protected abstract Self self();

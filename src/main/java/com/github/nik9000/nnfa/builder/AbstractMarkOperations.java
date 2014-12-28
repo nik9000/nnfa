@@ -21,6 +21,10 @@ public abstract class AbstractMarkOperations<Self extends AbstractMarkOperations
      * Push the current NFA work on the mark stack and start a fresh one.
      */
     public final Self mark() {
+        // TODO probably should support this
+        if (!toIsDefault()) {
+            throw new IllegalStateException("Can't mark when to has been overridden.");
+        }
         marks.add(from());
         marks.add(initial());
         initial = newState();
@@ -28,6 +32,9 @@ public abstract class AbstractMarkOperations<Self extends AbstractMarkOperations
         return self();
     }
 
+    /**
+     * Pop markCount marks off the mark stack.
+     */
     public final Self popMarks(int markCount) {
         for (int i = 0; i < markCount; i++) {
             marks.remove(marks.size() - 1);
