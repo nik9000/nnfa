@@ -9,7 +9,7 @@ import org.junit.Test;
 
 import com.github.nik9000.nnfa.builder.NfaBuilder;
 
-public class UnionNfaTest extends LuceneTestCase {
+public class UnionTest extends LuceneTestCase {
     @Test
     public void basic() {
         Nfa nfa = new NfaBuilder().mark().string("candle").mark().string("light").union().build();

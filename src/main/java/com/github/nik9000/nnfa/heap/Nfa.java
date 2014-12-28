@@ -50,11 +50,11 @@ public class Nfa {
                     if (!transition.matches(current.position, target)) {
                         continue;
                     }
-                    if (transition.next().accepts() && (!endAnchored || current.position >= target.length - 1)) {
+                    int nextPosition = transition.advances() ? current.position + 1 : current.position;
+                    if (transition.next().accepts() && (!endAnchored || nextPosition >= target.length)) {
                         return true;
                     }
-                    nextWork.add(new AcceptWork(transition.next(),
-                            transition.advances() ? current.position + 1 : current.position));
+                    nextWork.add(new AcceptWork(transition.next(), nextPosition));
                 }
             }
             List<AcceptWork> tmp = currentWork;
@@ -72,6 +72,11 @@ public class Nfa {
         private AcceptWork(State state, int position) {
             this.state = state;
             this.position = position;
+        }
+
+        @Override
+        public String toString() {
+            return position + "@" + state;
         }
     }
 
@@ -155,7 +160,7 @@ public class Nfa {
     }
 
     public void optional() {
-        initial.accepts(true);
+        throw new UnsupportedOperationException("Moved to NfaBuilder");
     }
 
     /**

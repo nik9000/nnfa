@@ -37,8 +37,8 @@ public abstract class AbstractMarkOperations<Self extends AbstractMarkOperations
      */
     public final Self popMarks(int markCount) {
         for (int i = 0; i < markCount; i++) {
-            marks.remove(marks.size() - 1);
-            marks.remove(marks.size() - 1);
+            initial = marks.remove(marks.size() - 1);
+            from(marks.remove(marks.size() - 1));
         }
         return self();
     }

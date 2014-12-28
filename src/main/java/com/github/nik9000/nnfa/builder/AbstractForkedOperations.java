@@ -1,7 +1,9 @@
 package com.github.nik9000.nnfa.builder;
 
-
-public abstract class AbstractForkedOperations<Self extends AbstractForkedOperations<Self>> extends AbstractMarkOperations<Self> {
+/**
+ * Operations on more than a single marked sub-NFA.
+ */
+public abstract class AbstractForkedOperations<Self extends AbstractForkedOperations<Self>> extends AbstractUnaryOperations<Self> {
     /**
      * Union the last clauses clauses.
      */
@@ -14,8 +16,8 @@ public abstract class AbstractForkedOperations<Self extends AbstractForkedOperat
             from(fromAt(clause)).to(to).epsilon();
         }
         from(from).to(initial()).epsilon();
-        from(currentFrom).to(to).epsilon();
-        return popMarks(clauses);
+        popMarks(clauses);
+        return from(currentFrom).to(to).epsilon();
     }
 
     /**
