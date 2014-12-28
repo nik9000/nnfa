@@ -10,7 +10,11 @@ import java.util.List;
  * make almost no effort to be efficient, just somewhat sensible.
  */
 public class Nfa {
-    private final State initial = new State();
+    private final State initial;
+
+    public Nfa(State initial) {
+        this.initial = initial;
+    }
 
     public State initial() {
         return initial;
@@ -71,18 +75,11 @@ public class Nfa {
         return initial.toString();
     }
 
-    /**
-     * Union this nfa with another in place.
-     */
-    public void union(Nfa nfa) {
-        /*
-         * This implementation is kind of cheating - because we walk both NFAs
-         * in a parallel we can just smash them together, no reduction required.
-         */
-        initial().intersect(nfa.initial());
+    public void intersect(Nfa nfa) {
+        throw new UnsupportedOperationException("Haven't built it yet");
     }
 
-    public void intersect(Nfa nfa) {
+    public void union(Nfa parseCharClass) {
         throw new UnsupportedOperationException("Haven't built it yet");
     }
 

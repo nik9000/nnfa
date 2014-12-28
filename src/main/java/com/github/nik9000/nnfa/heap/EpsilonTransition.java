@@ -20,6 +20,6 @@ public class EpsilonTransition extends AbstractTransition {
 
     @Override
     public String toString() {
-        return "->";
+        return "->" + next().id();
     }
 }

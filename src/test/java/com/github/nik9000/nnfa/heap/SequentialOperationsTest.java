@@ -7,9 +7,12 @@ import static org.hamcrest.Matchers.not;
 import org.apache.lucene.util.LuceneTestCase;
 import org.junit.Test;
 
-public class StringNfaTest extends LuceneTestCase {
-    private final NfaFactory factory = new NfaFactory();
+import com.github.nik9000.nnfa.builder.NfaBuilder;
 
+/**
+ * Test for AbstractSequentialOperations.
+ */
+public class SequentialOperationsTest extends LuceneTestCase {
     @Test
     public void emptyString() {
         exactStringTestCase("");
@@ -36,7 +39,7 @@ public class StringNfaTest extends LuceneTestCase {
         String strWithPrefixAndSuffix = strWithPrefix
                 + randomRealisticUnicodeString(random(), 1, 20);
 
-        Nfa nfa = factory.string(str);
+        Nfa nfa = new NfaBuilder().string(str).build();
         assertThat(nfa, accepts(str));
         assertThat(nfa, not(accepts(strWithPrefix)));
         assertThat(nfa, not(accepts(strWithSuffix)));

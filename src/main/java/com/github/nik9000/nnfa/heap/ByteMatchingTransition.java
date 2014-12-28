@@ -36,9 +36,19 @@ public class ByteMatchingTransition extends AbstractTransition {
     @Override
     public String toString() {
         if (from == to) {
-            return String.format(Locale.ROOT, "%x->", from);
+            return String.format(Locale.ROOT, "%s->%s", formatByte(from), next().id());
         }
-        return String.format(Locale.ROOT, "%x,%x->", from, to);
+        return String.format(Locale.ROOT, "%s,%s->%s", formatByte(from), formatByte(to), next().id());
+    }
+
+    private String formatByte(byte b) {
+        if ('a' <= b && b <= 'z') {
+            return Character.toString((char)b);
+        }
+        if ('A' <= b && b <= 'Z') {
+            return Character.toString((char)b);
+        }
+        return String.format(Locale.ROOT, "%x", b);
     }
 
     @Override

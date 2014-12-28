@@ -8,7 +8,12 @@ import java.util.List;
  */
 public class State {
 	private final List<AbstractTransition> transitions = new ArrayList<AbstractTransition>();
+	private final int id;
 	private boolean accepts = false;
+
+	public State(int id) {
+	    this.id = id;
+    }
 
 	public List<AbstractTransition> transitions() {
 		return transitions;
@@ -18,17 +23,13 @@ public class State {
 		return accepts;
 	}
 
+	public int id() {
+	    return id;
+	}
+
 	public State accepts(boolean accepts) {
 		this.accepts = accepts;
 		return this;
-	}
-
-	/**
-	 * Merge the passed in state with this one.
-	 */
-	public void intersect(State state) {
-		accepts |= state.accepts;
-		transitions.addAll(state.transitions);
 	}
 
 	@Override

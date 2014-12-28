@@ -1,7 +1,7 @@
 package com.github.nik9000.nnfa.regex;
 
+import com.github.nik9000.nnfa.builder.NfaBuilder;
 import com.github.nik9000.nnfa.heap.Nfa;
-import com.github.nik9000.nnfa.heap.NfaBuilder;
 import com.github.nik9000.nnfa.heap.NfaFactory;
 
 public class RegexParser {
@@ -49,7 +49,7 @@ public class RegexParser {
 
     public Nfa parse(NfaFactory factory, String expression, int flags) {
         if (expression.length() == 0) {
-            return new NfaBuilder().buildNoMark();
+            return new NfaBuilder().buildNoAccept();
         }
         Parse parse = new Parse(factory, expression, flags);
         Nfa nfa = parse.parseUnionExp();
@@ -233,7 +233,7 @@ public class RegexParser {
                 return new NfaBuilder().anyCodePoint().build();
             }
             if (check(EMPTY) && match('#')) {
-                return new NfaBuilder().buildNoMark();
+                return new NfaBuilder().buildNoAccept();
             }
             if (check(ANYSTRING) && match('@')) {
                 return new NfaBuilder().anyByte().build();
@@ -246,7 +246,7 @@ public class RegexParser {
                 if (!match('"')) {
                     throw new IllegalArgumentException("expected '\"' at position " + pos);
                 }
-                return factory.string(expression.substring(start, pos - 1));
+                return new NfaBuilder().string(expression.substring(start, pos - 1)).build();
             }
             if (match('(')) {
                 if (match(')')) {
